@@ -6,7 +6,7 @@ COPY go.mod .
 COPY go.sum .
 RUN apk add --no-cache alpine-sdk libsodium-dev zeromq-dev czmq-dev && go mod download
 COPY main.go .
-RUN go build
+RUN CGO_ENABLED=1 CGO_CFLAGS=-D_LARGEFILE64_SOURCE go build
 
 FROM alpine:3.20
 RUN apk add --no-cache libstdc++ libgcc libsodium libzmq czmq
