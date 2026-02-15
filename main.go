@@ -23,6 +23,8 @@ import (
 const VERSION = "1.0.0"
 
 var opFlags struct {
+	Debug bool
+
 	ImportSourceName string
 	ImportURL        string
 	ImportDebug      bool
@@ -62,6 +64,8 @@ func main() {
 			t := time.Unix(md.DiscoveredOn, 0).UTC()
 			FormattedTime := t.Format(time.RFC3339)
 
+			msg := fmt.Sprintf("Importing torrent %s...", string(InfoHashHex))
+
 			data := map[string]interface{}{
 				"infoHash":    InfoHashHex,
 				"name":        md.Name,
@@ -72,7 +76,9 @@ func main() {
 
 			jsonData, err := json.Marshal(data)
 			if err != nil {
-				fmt.Println("Error marshalling JSON:", err)
+				if opFlags.Debug == true {
+					log.Println(msg, "Error marshalling JSON:", err)
+				}
 				break
 			}
 
@@ -80,18 +86,31 @@ func main() {
 			dataBuffer.Write([]byte("\n"))
 			resp, err := http.Post(opFlags.ImportURL, "application/json", dataBuffer)
 			if err != nil {
-				fmt.Println("Error sending POST request:", err)
+				if opFlags.Debug == true {
+					log.Println(msg, "Error sending POST request:", err)
+				}
 				break
 			}
 			defer resp.Body.Close()
 
 			body, err := io.ReadAll(resp.Body)
 			if err != nil {
-				fmt.Println("Error reading response:", err)
+				if opFlags.Debug == true {
+					log.Println(msg, "Error reading response:", err)
+				}
 				break
 			}
+
+			if opFlags.Debug == true {
+				if resp.StatusCode == 200 {
+					log.Println(msg, "Success")
+				} else {
+					log.Println(msg, "Got bad response code:", resp.StatusCode)
+				}
+			}
+
 			if opFlags.ImportDebug == true {
-				log.Printf("Response: %s\n", string(body))
+				fmt.Printf("Got response: %s\n", string(body))
 			}
 
 		case <-interruptChan:
@@ -105,9 +124,11 @@ func parseFlags() error {
 	var cmdF struct {
 		Version bool `long:"version" description:"Print the version and exit."`
 
+		Debug bool `long:"debug" description:"Enable debugging messages."`
+
 		ImportSourceName string `long:"import-source" description:"The name to use as \"source\" when importing to bitmagnet." default:"magnetico"`
 		ImportURL        string `long:"import-url" description:"The URL to use when importing to bitmagnet." default:"http://localhost:3333/import"`
-		ImportDebug      bool   `long:"import-debug" description:"Print the responses of the POST requests to bitmagnet when importing."`
+		ImportDebug      bool   `long:"import-debug" description:"Print the response message from bitmagnet when importing."`
 
 		IndexerAddrs        []string `long:"indexer-addr" description:"Address(es) to be used by indexing DHT nodes." default:"0.0.0.0:0"`
 		IndexerMaxNeighbors uint     `long:"indexer-max-neighbors" description:"Maximum number of neighbors of an indexer." default:"5000"`
@@ -127,6 +148,8 @@ func parseFlags() error {
 		fmt.Printf("Magnetico-Bitmagnet V%s\n", VERSION)
 		os.Exit(0)
 	}
+
+	opFlags.Debug = cmdF.Debug
 
 	opFlags.ImportSourceName = cmdF.ImportSourceName
 	opFlags.ImportURL = cmdF.ImportURL
