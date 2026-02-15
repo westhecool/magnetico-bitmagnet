@@ -20,7 +20,7 @@ import (
 	"tgragnato.it/magnetico/metadata"
 )
 
-const VERSION = "1.0.0"
+const VERSION = "1.0.1"
 
 var opFlags struct {
 	Debug bool
