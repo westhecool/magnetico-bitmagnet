@@ -1,2 +1,0 @@
-#!/bin/bash
-CGO_ENABLED=1 CGO_CFLAGS=-D_LARGEFILE64_SOURCE go build
