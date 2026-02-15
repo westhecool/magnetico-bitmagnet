@@ -15,9 +15,9 @@ import (
 	"time"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/tgragnato/magnetico/dht"
-	"github.com/tgragnato/magnetico/dht/mainline"
-	"github.com/tgragnato/magnetico/metadata"
+	"tgragnato.it/magnetico/dht"
+	"tgragnato.it/magnetico/dht/mainline"
+	"tgragnato.it/magnetico/metadata"
 )
 
 const VERSION = "1.0.0"
